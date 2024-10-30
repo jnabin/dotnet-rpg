@@ -43,5 +43,15 @@ namespace dotnet_rpg.Services.CharacterService
             ServiceRespose<GetCharacterDto> serviceRespose = new ServiceRespose<GetCharacterDto>{Data = _mapper.Map<GetCharacterDto>(character)};
             return serviceRespose;
         }
+
+        public async Task<ServiceRespose<GetCharacterDto>> updateCharacter(UpdateCharacterDto character, int id)
+        {
+            var existCharacter = characters.FirstOrDefault(x => x.Id == id);
+            if(existCharacter is null){
+                return new ServiceRespose<GetCharacterDto>{Data = null, Success = false, Message = $"CHaracter doesnot exist with id '{id}'"};
+            }
+            _mapper.Map(character, existCharacter);
+            return new ServiceRespose<GetCharacterDto>{Data = _mapper.Map<GetCharacterDto>(character)};
+        }
     }
 }
