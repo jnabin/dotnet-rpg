@@ -13,5 +13,6 @@ namespace dotnet_rpg.Services.CharacterService
         Task<ServiceRespose<GetCharacterDto>> getSingle(int id);
         Task<ServiceRespose<List<GetCharacterDto>>> addCharacter(AddCharacterDto character);
         Task<ServiceRespose<GetCharacterDto>> updateCharacter(UpdateCharacterDto character, int id);
+        Task<ServiceRespose<List<GetCharacterDto>>> deleteCharacter(int id);
     }
 }
