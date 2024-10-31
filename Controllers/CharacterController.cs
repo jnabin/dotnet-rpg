@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using dotnet_rpg.dtos;
 using dotnet_rpg.dtos.Character;
@@ -21,12 +22,13 @@ namespace dotnet_rpg.Controllers
             _characterService = characterService;
         }
 
-        [AllowAnonymous]
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceRespose<List<GetCharacterDto>>>> GetAll(){
-            return Ok(await _characterService.getAll());
+            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
+            return Ok(await _characterService.getAll(userId));
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceRespose<GetCharacterDto>>> GetSingle(int id){
             return Ok(await _characterService.getSingle(id));
