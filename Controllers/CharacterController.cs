@@ -36,7 +36,8 @@ namespace dotnet_rpg.Controllers
 
         [HttpPost]
         public async Task<ActionResult<ServiceRespose<List<GetCharacterDto>>>> AddCharacter(AddCharacterDto character){
-            return Ok(await _characterService.addCharacter(character));
+            var response = await _characterService.addCharacter(character);
+            return Created(Request.Path.ToString()+$"/{response.Data!.LastOrDefault()!.Id}", response);
         }
 
         [HttpPut("{id}")]

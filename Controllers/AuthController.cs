@@ -26,7 +26,7 @@ namespace dotnet_rpg.Controllers
             );
 
             if(response.Success){
-                return Ok(response);
+                return Created(Request.Path, response);
             } else{
                 return BadRequest(response);
             }

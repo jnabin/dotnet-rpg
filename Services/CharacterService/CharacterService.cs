@@ -33,9 +33,13 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceRespose<List<GetCharacterDto>>> addCharacter(AddCharacterDto character)
         {
             var mainCharacter = _mapper.Map<Character>(character);
+            mainCharacter.User = await _context.Users.FirstOrDefaultAsync(x => x.Id == getUserId());
             _context.Characters.Add(mainCharacter);
             await _context.SaveChangesAsync();
-            var characterDto = await _context.Characters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToListAsync();
+            var characterDto = await _context.Characters
+                .Where(x => x.User!.Id == getUserId())
+                .Select(x => _mapper.Map<GetCharacterDto>(x))
+                .ToListAsync();
             ServiceRespose<List<GetCharacterDto>> serviceRespose = new ServiceRespose<List<GetCharacterDto>>{Data = characterDto};
             return serviceRespose;
         }
@@ -57,7 +61,7 @@ namespace dotnet_rpg.Services.CharacterService
 
         public async Task<ServiceRespose<GetCharacterDto>> updateCharacter(UpdateCharacterDto character, int id)
         {
-            var existCharacter = characters.FirstOrDefault(x => x.Id == id);
+            var existCharacter = await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
             if(existCharacter is null){
                 return new ServiceRespose<GetCharacterDto>{Data = null, Success = false, Message = $"CHaracter doesnot exist with id '{id}'"};
             }
@@ -69,7 +73,7 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var response = new ServiceRespose<List<GetCharacterDto>>();
             try{
-                var existCharacter = characters.FirstOrDefault(x => x.Id == id);
+                var existCharacter = await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
                 if(existCharacter is null){
                     throw new Exception($"Character doesnot exist with id '{id}'");
                 }
