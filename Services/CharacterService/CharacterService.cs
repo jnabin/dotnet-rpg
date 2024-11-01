@@ -90,15 +90,62 @@ namespace dotnet_rpg.Services.CharacterService
         }
 
         private async Task<Character?> getCharacterObject(int id){
-            Character? character = await _context.Characters!.FirstOrDefaultAsync(x => x.Id == id && x.User!.Id == getUserId());
+            Character? character = await _context.Characters!.Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .FirstOrDefaultAsync(x => x.Id == id && x.User!.Id == getUserId());
             return character;
         }
 
         private async Task<List<Character>> getAllCharacterObject(){
             var character = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
                 .Where(x => x.User!.Id == getUserId())
                 .ToListAsync();
             return character;
+        }
+
+        public async Task<ServiceRespose<GetCharacterDto>> AddSkillToCharacter(AddSkillToCharacterDto addSkillToCharacterDto)
+        {
+            var response = new ServiceRespose<GetCharacterDto>();
+            try
+            {
+                var character = await _context.Characters
+                    .Include(c => c.Weapon)
+                    .Include(c => c.Skills)
+                    .FirstOrDefaultAsync(x => x.Id == addSkillToCharacterDto.CharacterId 
+                        && x.User!.Id == getUserId());
+                if(character is null){
+                    response.Success = false;
+                    response.Message = $"Character not found with characterId - {addSkillToCharacterDto.CharacterId}";
+                    return response;
+                }
+
+                if(character.Skills!.Select(x => x.Id).Contains(addSkillToCharacterDto.SkillId)){
+                    response.Success = false;
+                    response.Message = $"Skill already added into the Character";
+                    return response;
+                }
+
+                var skill = await _context.Skills.FirstOrDefaultAsync(x => x.Id == addSkillToCharacterDto.SkillId);
+                if(skill is null){
+                    response.Success = false;
+                    response.Message = $"CharSkillacter not found with skillId - {addSkillToCharacterDto.SkillId}";
+                    return response;
+                }
+
+                character.Skills!.Add(skill);
+                await _context.SaveChangesAsync();
+                
+                response.Data = _mapper.Map<GetCharacterDto>(character);
+                return response;
+            }
+            catch (Exception exc)
+            {
+                response.Success = false;
+                response.Message = exc.Message;
+                return response;
+            }
         }
     }
 }
