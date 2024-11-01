@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using dotnet_rpg.Data;
@@ -16,14 +17,19 @@ namespace dotnet_rpg.Services.CharacterService
             new Character(),
             new Character{Id = 1, Name = "Demo"}
         };
-        public DataContext _context;
-
+        private DataContext _context;
+        private IHttpContextAccessor _httpContextAccessor;
         private IMapper _mapper;
-        public CharacterService(IMapper mapper, DataContext context)
+        public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor contextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = contextAccessor;
         }
+
+        public int getUserId() => int.Parse(_httpContextAccessor.HttpContext!
+            .User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         public async Task<ServiceRespose<List<GetCharacterDto>>> addCharacter(AddCharacterDto character)
         {
             var mainCharacter = _mapper.Map<Character>(character);
@@ -34,9 +40,9 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceRespose;
         }
 
-        public async Task<ServiceRespose<List<GetCharacterDto>>> getAll(int userId)
+        public async Task<ServiceRespose<List<GetCharacterDto>>> getAll()
         {
-            var dbCharacters = await _context.Characters.Where(x => x.User!.Id == userId).ToListAsync();
+            var dbCharacters = await _context.Characters.Where(x => x.User!.Id == getUserId()).ToListAsync();
             var characterDto =  dbCharacters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
             ServiceRespose<List<GetCharacterDto>> serviceRespose = new ServiceRespose<List<GetCharacterDto>>{Data = characterDto};
             return serviceRespose;
