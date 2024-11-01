@@ -28,7 +28,6 @@ namespace dotnet_rpg.Controllers
             return Ok(await _characterService.getAll());
         }
 
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceRespose<GetCharacterDto>>> GetSingle(int id){
             return Ok(await _characterService.getSingle(id));

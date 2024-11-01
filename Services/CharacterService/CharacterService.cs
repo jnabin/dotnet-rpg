@@ -13,13 +13,10 @@ namespace dotnet_rpg.Services.CharacterService
 {
     public class CharacterService : ICharacterService
     {
-        private static List<Character> characters = new List<Character>{
-            new Character(),
-            new Character{Id = 1, Name = "Demo"}
-        };
         private DataContext _context;
         private IHttpContextAccessor _httpContextAccessor;
         private IMapper _mapper;
+
         public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor contextAccessor)
         {
             _context = context;
@@ -34,34 +31,38 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var mainCharacter = _mapper.Map<Character>(character);
             mainCharacter.User = await _context.Users.FirstOrDefaultAsync(x => x.Id == getUserId());
+
             _context.Characters.Add(mainCharacter);
             await _context.SaveChangesAsync();
-            var characterDto = await _context.Characters
-                .Where(x => x.User!.Id == getUserId())
-                .Select(x => _mapper.Map<GetCharacterDto>(x))
-                .ToListAsync();
+                            var dbCharacters = await getAllCharacterObject();
+            var characterDto = dbCharacters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
+            
             ServiceRespose<List<GetCharacterDto>> serviceRespose = new ServiceRespose<List<GetCharacterDto>>{Data = characterDto};
+
             return serviceRespose;
         }
 
         public async Task<ServiceRespose<List<GetCharacterDto>>> getAll()
         {
-            var dbCharacters = await _context.Characters.Where(x => x.User!.Id == getUserId()).ToListAsync();
+            var dbCharacters = await getAllCharacterObject();
             var characterDto =  dbCharacters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
-            ServiceRespose<List<GetCharacterDto>> serviceRespose = new ServiceRespose<List<GetCharacterDto>>{Data = characterDto};
+            ServiceRespose<List<GetCharacterDto>> serviceRespose = 
+                new ServiceRespose<List<GetCharacterDto>>{Data = characterDto};
+
             return serviceRespose;
         }
 
         public async Task<ServiceRespose<GetCharacterDto>> getSingle(int id)
         {
-            var character = await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
-            ServiceRespose<GetCharacterDto> serviceRespose = new ServiceRespose<GetCharacterDto>{Data = _mapper.Map<GetCharacterDto>(character)};
+            var character = await getCharacterObject(id);
+            ServiceRespose<GetCharacterDto> serviceRespose = 
+                new ServiceRespose<GetCharacterDto>{Data = _mapper.Map<GetCharacterDto>(character)};
             return serviceRespose;
         }
 
         public async Task<ServiceRespose<GetCharacterDto>> updateCharacter(UpdateCharacterDto character, int id)
         {
-            var existCharacter = await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
+            var existCharacter = await getCharacterObject(id);
             if(existCharacter is null){
                 return new ServiceRespose<GetCharacterDto>{Data = null, Success = false, Message = $"CHaracter doesnot exist with id '{id}'"};
             }
@@ -73,17 +74,31 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var response = new ServiceRespose<List<GetCharacterDto>>();
             try{
-                var existCharacter = await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
+                var existCharacter = await getCharacterObject(id);
                 if(existCharacter is null){
                     throw new Exception($"Character doesnot exist with id '{id}'");
                 }
-                characters.Remove(existCharacter);
-                response.Data = characters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
+                _context.Characters.Remove(existCharacter);
+                await _context.SaveChangesAsync();
+                var dbCharacters = await getAllCharacterObject();
+                response.Data = dbCharacters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
             } catch(Exception exc){
                 response.Success = false;
                 response.Message = exc.Message;
             }
             return response;
+        }
+
+        private async Task<Character?> getCharacterObject(int id){
+            Character? character = await _context.Characters!.FirstOrDefaultAsync(x => x.Id == id && x.User!.Id == getUserId());
+            return character;
+        }
+
+        private async Task<List<Character>> getAllCharacterObject(){
+            var character = await _context.Characters
+                .Where(x => x.User!.Id == getUserId())
+                .ToListAsync();
+            return character;
         }
     }
 }
