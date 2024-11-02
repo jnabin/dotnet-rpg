@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using dotnet_rpg.Migrations;
 using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_rpg.Data
@@ -20,6 +21,9 @@ namespace dotnet_rpg.Data
                 new Skill{Id = 2, Damage = 60, Name = "Skill 2"},
                 new Skill{Id = 3, Damage = 30, Name = "Skill 3"}
             );
+
+            modelBuilder.Entity<User>()
+                .Property(user => user.Role).HasDefaultValue("Player");
         }
 
         public DbSet<Character> Characters => Set<Character>();
