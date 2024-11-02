@@ -24,6 +24,11 @@ namespace dotnet_rpg.Data
 
             modelBuilder.Entity<User>()
                 .Property(user => user.Role).HasDefaultValue("Player");
+
+            Utility.CreatePasswordHash("1234", out byte[] passwordSalt, out byte[] passwordHash);
+            modelBuilder.Entity<User>().HasData(
+                new User{Id = 12, UserName = "AdminUser", PasswordHash = passwordHash, PasswordSalt = passwordSalt, Role = "Admin"}
+            );
         }
 
         public DbSet<Character> Characters => Set<Character>();

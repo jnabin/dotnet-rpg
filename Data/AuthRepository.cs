@@ -43,7 +43,7 @@ namespace dotnet_rpg.Data
             if(isUserExist is true){
                 return new ServiceRespose<int>{Data = 0, Message = $"User already exist with {user.UserName}", Success = false};;
             } else{
-                CreatePasswordHash(password, out byte[] passwordSalt, out byte[] passwordHash);
+                Utility.CreatePasswordHash(password, out byte[] passwordSalt, out byte[] passwordHash);
                 user.PasswordHash = passwordHash;
                 user.PasswordSalt = passwordSalt;
                 _context.Users.Add(user);
@@ -58,13 +58,7 @@ namespace dotnet_rpg.Data
             return await _context.Users.AnyAsync(x => x.UserName.ToLower() == userName.ToLower());
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordSalt, out byte[] passwordHash){
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));                
-            }
-        }
+
 
         private bool VerifyPasswordHash(string Password, byte[] PasswordHash, byte[] PasswordSalt){
             using(var hmac = new System.Security.Cryptography.HMACSHA512(PasswordSalt)){
