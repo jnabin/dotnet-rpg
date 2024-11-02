@@ -76,7 +76,8 @@ namespace dotnet_rpg.Data
         private string CreateToken(User user){
             var claims = new List<Claim>{
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, user.Role)
             };
             var appSettingToken = _configure.GetSection("AppSettings:Token").Value;
             if(appSettingToken is null)
