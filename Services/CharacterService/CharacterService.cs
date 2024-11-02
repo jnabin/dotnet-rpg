@@ -101,7 +101,7 @@ namespace dotnet_rpg.Services.CharacterService
 
         private async Task<List<Character>> getAllCharacterObject(){
             var character = new List<Character>();
-            if(getUserRole() == "admin"){
+            if(getUserRole() == "Admin"){
                 character = await _context.Characters
                     .Include(c => c.Weapon)
                     .Include(c => c.Skills)

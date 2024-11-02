@@ -14,6 +14,6 @@ namespace dotnet_rpg.models
         public byte[] PasswordSalt { get; set; } = new byte[0];
         public List<Character>? Characters { get; set; }
         [Required]
-        public string Role { get; set; } = string.Empty;
+        public string Role { get; set; }
     }
 }
