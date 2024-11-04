@@ -1,4 +1,5 @@
 global using dotnet_rpg.models;
+using AspNetCoreRateLimit;
 using dotnet_rpg.Data;
 using dotnet_rpg.Services.CharacterService;
 using dotnet_rpg.Services.WeaponService;
@@ -28,6 +29,26 @@ builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(options => {
+    options.EnableEndpointRateLimiting = true;
+    options.StackBlockedRequests = true;
+    options.RealIpHeader = "X-Real-IP";
+    options.ClientIdHeader = "X-ClientId";
+    options.GeneralRules = new List<RateLimitRule>{
+        new RateLimitRule{
+            Endpoint = "*",
+            Limit = 10,
+            Period = "5s"
+        }
+    };
+});
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+builder.Services.AddInMemoryRateLimiting();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options => {
@@ -48,6 +69,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseIpRateLimiting();
 
 app.UseHttpsRedirection();
 
