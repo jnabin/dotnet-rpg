@@ -11,7 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5088");
 // Add services to the container.
 builder.Services.AddDbContext<DataContext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    {
+        string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+        if(!builder.Environment.IsDevelopment()){
+            var password = Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD");
+            connectionString = string.Format(connectionString, password);
+        }
+        options.UseSqlServer(connectionString);
+    }
+);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -63,12 +71,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         });
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseIpRateLimiting();
 
 app.UseHttpsRedirection();
@@ -78,5 +83,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using(var scope = app.Services.CreateScope()){
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    db.Database.Migrate();
+}
 
 app.Run();

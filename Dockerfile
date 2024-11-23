@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS base
 RUN addgroup app && adduser -S -G app app
 WORKDIR /app
-ENV ASPNETCORE_ENVIRONMENT=Development
 EXPOSE 5088
 EXPOSE 7241
 

@@ -1,6 +1,21 @@
 services:
   api:
     build: .
+    environment:
+      - MSSQL_SA_PASSWORD=Password1*
     ports:
       - 5088:5088
+    depends_on:
+      - sql-server
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password1*
+    ports:
+      - 1433:1433
+    volumes:
+      - /data/:/var/opt/mssql/data/
+      - /log/:/var/opt/mssql/log/
+      - /secrets/:/var/opt/mssql/secrets/
   
