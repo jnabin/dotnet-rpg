@@ -34,7 +34,7 @@ namespace dotnet_rpg.Data
                 response.Data = CreateToken(user);
             }
 
-            throw new Exception();
+            return response;
         }
 
         public async Task<ServiceRespose<int>> Register(User user, string password)
