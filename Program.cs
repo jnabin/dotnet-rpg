@@ -51,6 +51,7 @@ builder.Services.Configure<IpRateLimitOptions>(options => {
         }
     };
 });
+builder.Services.AddTransient<ExceptionHandler>();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
@@ -83,6 +84,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ExceptionHandler>(); 
 
 using(var scope = app.Services.CreateScope()){
     var db = scope.ServiceProvider.GetRequiredService<DataContext>();
